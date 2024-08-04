@@ -23,18 +23,18 @@ class VideoCarousel extends StatefulWidget {
 class _VideoCarouselState extends State<VideoCarousel> {
   late List<YoutubePlayerController> _controllers;
   bool _isPlaying = false;
+  bool _isMuted = false;
 
   @override
   void initState() {
     super.initState();
     _controllers = widget.videoDataList.map((videoData) {
       final videoId = YoutubePlayer.convertUrlToId(videoData.url) ?? '';
-      print('Video ID: $videoId');
       final controller = YoutubePlayerController(
         initialVideoId: videoId,
         flags: YoutubePlayerFlags(
           autoPlay: false,
-          mute: false,
+          mute: _isMuted,
         ),
       );
       controller.addListener(() {
@@ -54,12 +54,21 @@ class _VideoCarouselState extends State<VideoCarousel> {
     }).toList();
   }
 
+  void _toggleMute() {
+    setState(() {
+      _isMuted = !_isMuted;
+      for (var controller in _controllers) {
+        controller.setVolume(_isMuted ? 0 : 100);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return CarouselSlider(
       options: CarouselOptions(
-        height: 300.0,  // Adjust the height as needed
-        autoPlay: !_isPlaying,  // Disable auto-play while a video is playing
+        height: 250.0,
+        autoPlay: !_isPlaying,
         enlargeCenterPage: true,
         enableInfiniteScroll: true,
         autoPlayInterval: Duration(seconds: 8),
@@ -71,7 +80,7 @@ class _VideoCarouselState extends State<VideoCarousel> {
           builder: (BuildContext context) {
             return Container(
               width: MediaQuery.of(context).size.width,
-              margin: EdgeInsets.symmetric(horizontal: 5.0),
+              margin: EdgeInsets.symmetric(horizontal: 2.0),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10.0), // Adjust radius as needed
                 boxShadow: [
@@ -82,7 +91,7 @@ class _VideoCarouselState extends State<VideoCarousel> {
                   ),
                 ],
                 border: Border.all(
-                  color: Colors.grey.withOpacity(0.5), // Border color
+                  color: Colors.red.withOpacity(0.5),
                   width: 1.0, // Border width
                 ),
                 color: Colors.white, // Background color
@@ -90,34 +99,48 @@ class _VideoCarouselState extends State<VideoCarousel> {
               child: Column(
                 children: [
                   Expanded(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10.0),
-                      child: FittedBox(
-                        fit: BoxFit.cover, // Ensure the video covers the entire container
-                        child: SizedBox(
-                          width: MediaQuery.of(context).size.width,
-                          height: 200.0, // Match the height of the CarouselSlider
-                          child: YoutubePlayer(
-                            controller: controller,
-                            showVideoProgressIndicator: true,
-                            progressIndicatorColor: Colors.amber,
+                    child: Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10.0),
+                          child: FittedBox(
+                            fit: BoxFit.cover, // Ensure the video covers the entire container
+                            child: SizedBox(
+                              width: MediaQuery.of(context).size.width,
+                              height: 200.0, // Match the height of the CarouselSlider
+                              child: YoutubePlayer(
+                                controller: controller,
+                                showVideoProgressIndicator: true,
+                                progressIndicatorColor: Colors.amber,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                        Positioned(
+                          top: 8.0,
+                          right: 8.0,
+                          child: IconButton(
+                            icon: Icon(
+                              _isMuted ? Icons.volume_off : Icons.volume_up,
+                              color: Colors.white,
+                            ),
+                            onPressed: _toggleMute,
+                          ),
+                        ),
+                       ],
                     ),
                   ),
                   Container(
-                    padding: EdgeInsets.all(8.0),
-                    alignment: Alignment.centerLeft,
+                    padding: EdgeInsets.all(10.0),
+                    alignment: Alignment.topLeft,
                     child: Text(
                       videoData.title,
-
                       style: const TextStyle(
                         fontSize: 16.0,
                         fontWeight: FontWeight.bold,
                         fontFamily: 'NotoSansDevanagari',
                       ),
-                    )
+                    ),
                   ),
                 ],
               ),

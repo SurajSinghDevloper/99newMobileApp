@@ -1,4 +1,5 @@
 import 'dart:convert' as convert;
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:newsapp99/components/carousel.dart';
 import 'package:newsapp99/components/landing_page_header.dart';
@@ -31,8 +32,9 @@ class _LandingPageState extends State<LandingPage> {
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
-        final jsonResponse = convert.jsonDecode(response.body) as List<dynamic>;
-        final List<dynamic> topVideos = jsonResponse.where((videoData) => videoData['videoPriority'] == "OTHERS").toList();
+        final jsonResponse = convert.jsonDecode(utf8.decode(response.bodyBytes)) as List<dynamic>;
+        final List<dynamic> topVideos = jsonResponse.where((videoData) => videoData['videoPriority'] == "RIGHTVIDEO").toList();
+
         setState(() {
           _topVideosData = getTopVideoData(topVideos);
           _isLoading = false;
